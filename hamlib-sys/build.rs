@@ -29,6 +29,12 @@ pub fn main() {
         .clang_arg(format!("-I{}", dst.join("include").join("hamlib").display()))
         .clang_arg(format!("-I{}", dst.join("include").display()))
         .clang_macro_fallback()
+        .generate_cstr(true)
+        .blocklist_item("PTHREAD.*")
+        .blocklist_item("IPPROTO.*")
+        .blocklist_item("MSG_.*")
+        .blocklist_item("SHUT_.*")
+        .blocklist_item("SCM_.*")
         .generate()
         .unwrap();
 
