@@ -5,9 +5,9 @@
   };
 
   outputs = {
-    self,
     nixpkgs,
     rust-overlay,
+    ...
   }: let
     system = "x86_64-linux";
     pkgs = import nixpkgs {
@@ -19,7 +19,12 @@
     devShells.${system}.default = pkgs.mkShell {
       packages = [
         toolchain
+        pkgs.rustPlatform.bindgenHook
         pkgs.rust-analyzer-unwrapped
+        pkgs.autoconf
+        pkgs.automake
+        pkgs.libtool
+        pkgs.libclang
       ];
 
       RUST_SRC_PATH = "${toolchain}/lib/rustlib/src/rust/library";

@@ -1,3 +1,6 @@
 [workspace]
 resolver = "2"
 members = ["hamlib", "hamlib-sys"]
+
+[workspace.dependencies]
+hamlib-sys = { path = "hamlib-sys" }
