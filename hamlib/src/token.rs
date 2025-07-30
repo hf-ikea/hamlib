@@ -1,4 +1,4 @@
-// this should probably be codegenned but whatever..
+// this should probably be codegenned..
 // https://github.com/Hamlib/Hamlib/blob/master/src/token.h
 // modified with search: #define ([^\s]+) +TOKEN_FRONTEND\((.+?(?=\)))\)
 // vscode        replace: pub const $1: i64 = $2 | (1 << 30);
