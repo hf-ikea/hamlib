@@ -19,11 +19,11 @@ pub type RigResult<T> = Result<T, RigErrorCode>;
 
 impl RigResultExt for RigResult<()> {
     fn from_code(code: i32) -> Self {
-        unsafe { mem::transmute(code) }
+        unsafe { mem::transmute(-code) }
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy)]
 pub struct RigErrorCode(NonZeroU32);
 
 impl RigErrorCode {
@@ -36,7 +36,7 @@ macro_rules! rig_errors {
   (
     $(
       $(#[$meta:meta])*
-      $name:ident = $val:expr);+$(;)?
+      $name:ident = $val:ident);+$(;)?
     ) => {
     impl RigErrorCode {
       $(
@@ -44,6 +44,15 @@ macro_rules! rig_errors {
         #[allow(unused)]
         const $name: Self = Self(const { NonZeroU32::new($val).expect("Error code must be nonzero") });
       )+
+    }
+    impl std::fmt::Debug for RigErrorCode {
+      fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        #[allow(non_upper_case_globals)]
+        match self.0.get() {
+          $( $val => f.pad(::std::concat!("RigError(", ::std::stringify!($name), ")" )), )+
+          v => f.pad(&::std::format!("RigError(Other({v}))"))
+        }
+      }
     }
   }
 }

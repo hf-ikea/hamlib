@@ -1,9 +1,9 @@
 pub mod error;
 pub mod lock;
+pub mod params;
 pub mod rig;
 pub mod token;
 pub mod vfo;
-pub mod params;
 
 pub use hamlib_sys as sys;
 
@@ -34,26 +34,27 @@ mod tests {
         rig_set_conf, rig_set_debug, rig_set_freq, rig_set_vfo,
     };
 
-    use crate::{error::RigResult, lock::{self, Hamlib}, params, rig::Rig, token::TOK_PATHNAME, vfo::VFO};
+    use crate::{
+        error::RigResult, lock::{self, Hamlib}, params, rig::Rig, token::TOK_PATHNAME, vfo::VFO
+    };
 
     #[test]
     fn sandbox() -> RigResult<()> {
-        unsafe { lock::init_hamlib() };
-        lock::set_log_level(crate::LogLevel::Warn);
-        lock::set_log_timestamps(true);
-        lock::load_rig_backends()?;
-
-        let lib = Hamlib::new().unwrap();
-
+        let lib = &Hamlib::new().unwrap();
+        unsafe { lock::Hamlib::init_hamlib() };
+        lock::set_log_level(lib, crate::LogLevel::Warn);
+        lock::set_log_timestamps(lib, true);
+        lock::load_rig_backends(lib)?;
+        
         params::init_params(lib);
 
         let mut my_rig = Rig::new(RIG_MODEL_IC7200).unwrap();
-        my_rig.set_conf(TOK_PATHNAME, c"/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_IC-7200_0202084-if00-port0")?;
-        my_rig.open()?;
-        my_rig.set_vfo(VFO::RIG_VFO_B)?;
-        my_rig.set_freq(VFO::RIG_VFO_CURR, 21235175.0)?;
+        my_rig.set_conf(lib, TOK_PATHNAME, c"/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_IC-7200_0202084-if00-port0")?;
+        my_rig.open(lib)?;
+        my_rig.set_vfo(lib, VFO::RIG_VFO_B)?;
+        my_rig.set_freq(lib, VFO::RIG_VFO_CURR, 21235175.0)?;
 
-        let freq = my_rig.get_freq(VFO::RIG_VFO_CURR)?;
+        let freq = my_rig.get_freq(lib, VFO::RIG_VFO_CURR)?;
         dbg!(freq);
 
         Ok(())

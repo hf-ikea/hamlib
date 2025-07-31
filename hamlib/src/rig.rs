@@ -10,8 +10,7 @@ use hamlib_sys::{
 };
 
 use crate::{
-    error::{RigResult, RigResultExt},
-    vfo::VFO,
+    error::{RigResult, RigResultExt}, lock::Hamlib, vfo::VFO
 };
 
 pub struct Rig {
@@ -32,16 +31,16 @@ impl Rig {
         }
     }
 
-    pub fn open(&mut self) -> RigResult<()> {
+    pub fn open(&mut self, _lib: &Hamlib) -> RigResult<()> {
         RigResult::from_code(unsafe { rig_open(self.ptr.as_ptr()) })
     }
 
-    pub fn set_conf(&mut self, tok: i64, value: impl Into<CString>) -> RigResult<()> {
+    pub fn set_conf(&mut self, _lib: &Hamlib, tok: i64, value: impl Into<CString>, ) -> RigResult<()> {
         let s: CString = value.into();
         RigResult::from_code(unsafe { rig_set_conf(self.ptr.as_ptr(), tok, s.as_ptr()) })
     }
 
-    pub fn get_conf(&self, tok: i64) -> RigResult<String> {
+    pub fn get_conf(&self, _lib: &Hamlib, tok: i64) -> RigResult<String> {
         let mut buf_len = 64;
         let mut s: Vec<u8> = vec![0; buf_len];
         loop {
@@ -62,16 +61,16 @@ impl Rig {
         Ok(unsafe { CString::from_vec_unchecked(s).to_string_lossy().to_string() })
     }
 
-    pub fn token_lookup(&self, value: impl Into<CString>) -> i64 {
+    pub fn token_lookup(&self, _lib: &Hamlib, value: impl Into<CString>) -> i64 {
         let s: CString = value.into();
         unsafe { rig_token_lookup(self.ptr.as_ptr(), s.as_ptr()) }
     }
 
-    pub fn set_freq(&mut self, vfo: VFO, freq: f64) -> RigResult<()> {
+    pub fn set_freq(&mut self, _lib: &Hamlib, vfo: VFO, freq: f64) -> RigResult<()> {
         RigResult::from_code(unsafe { rig_set_freq(self.ptr.as_ptr(), vfo.bits(), freq) })
     }
 
-    pub fn get_freq(&self, vfo: VFO) -> RigResult<f64> {
+    pub fn get_freq(&self, _lib: &Hamlib, vfo: VFO) -> RigResult<f64> {
         let mut freq = 0.0;
         RigResult::from_code(unsafe {
             rig_get_freq(self.ptr.as_ptr(), vfo.bits(), ptr::from_mut(&mut freq))
@@ -81,14 +80,14 @@ impl Rig {
 
     /// Sets the mode on the given VFO, with mode being a sys::RIG_MODE_*,
     /// and width being represented in Hz.
-    pub fn set_mode(&mut self, vfo: VFO, mode: u32, width: i64) -> RigResult<()> {
+    pub fn set_mode(&mut self, _lib: &Hamlib, vfo: VFO, mode: u32, width: i64) -> RigResult<()> {
         RigResult::from_code(unsafe {
             rig_set_mode(self.ptr.as_ptr(), vfo.bits(), mode.into(), width)
         })
     }
 
     /// Returns a tuple representing the current mode (sys::RIG_MODE_*), and width in Hz.
-    pub fn get_mode(&self, vfo: VFO) -> RigResult<(u64, i64)> {
+    pub fn get_mode(&self, _lib: &Hamlib, vfo: VFO) -> RigResult<(u64, i64)> {
         let mut mode = 0;
         let mut width = 0;
         RigResult::from_code(unsafe {
@@ -102,11 +101,11 @@ impl Rig {
         Ok((mode, width))
     }
 
-    pub fn set_vfo(&mut self, vfo: VFO) -> RigResult<()> {
+    pub fn set_vfo(&mut self, _lib: &Hamlib, vfo: VFO) -> RigResult<()> {
         unsafe { mem::transmute(rig_set_vfo(self.ptr.as_ptr(), vfo.bits())) }
     }
 
-    pub fn get_vfo(&self) -> RigResult<VFO> {
+    pub fn get_vfo(&self, _lib: &Hamlib) -> RigResult<VFO> {
         let mut vfo = 0;
         RigResult::from_code(unsafe { rig_get_vfo(self.ptr.as_ptr(), ptr::from_mut(&mut vfo)) })?;
         Ok(VFO::from_bits_retain(vfo))

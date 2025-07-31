@@ -1,3 +1,4 @@
+// NEAR-DEPRECATED
 // this should probably be codegenned..
 // https://github.com/Hamlib/Hamlib/blob/master/src/token.h
 // modified with search: #define ([^\s]+) +TOKEN_FRONTEND\((.+?(?=\)))\)

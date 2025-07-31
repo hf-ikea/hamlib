@@ -22,6 +22,12 @@ pub fn main() {
         dst.join("lib").display()
     );
 
+    // Simply link the library without using pkg-config
+    println!(
+        "cargo:rustc-link-search=native={}",
+        dst.display()
+    );
+
     println!("cargo:rustc-link-lib=static=hamlib");
     let bindings = bindgen::Builder::default()
         .header("src/native/wrapper.h")
