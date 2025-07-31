@@ -3,3 +3,7 @@
 #![allow(non_snake_case)]
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
+
+unsafe extern "C" {
+    pub static frontend_cfg_params: *const confparams;
+}

@@ -1,9 +1,28 @@
 pub mod error;
+pub mod lock;
 pub mod rig;
 pub mod token;
 pub mod vfo;
+pub mod params;
 
 pub use hamlib_sys as sys;
+
+pub enum LogLevel {
+    #[doc = "no bug reporting"]
+    None = 0,
+    #[doc = "serious bug"]
+    Bug = 1,
+    #[doc = "error case (e.g. protocol, memory allocation)"]
+    Error = 2,
+    #[doc = "warning"]
+    Warn = 3,
+    #[doc = "verbose"]
+    Verbose = 4,
+    #[doc = "tracing"]
+    Trace = 5,
+    #[doc = "caching"]
+    Cache = 6,
+}
 
 #[cfg(test)]
 mod tests {
@@ -15,14 +34,18 @@ mod tests {
         rig_set_conf, rig_set_debug, rig_set_freq, rig_set_vfo,
     };
 
-    use crate::{error::RigResult, rig::Rig, token::TOK_PATHNAME, vfo::VFO};
+    use crate::{error::RigResult, lock::{self, Hamlib}, params, rig::Rig, token::TOK_PATHNAME, vfo::VFO};
 
     #[test]
     fn sandbox() -> RigResult<()> {
-        unsafe {
-            rig_set_debug(rig_debug_level_e_RIG_DEBUG_NONE);
-            rig_load_all_backends();
-        }
+        unsafe { lock::init_hamlib() };
+        lock::set_log_level(crate::LogLevel::Warn);
+        lock::set_log_timestamps(true);
+        lock::load_rig_backends()?;
+
+        let lib = Hamlib::new().unwrap();
+
+        params::init_params(lib);
 
         let mut my_rig = Rig::new(RIG_MODEL_IC7200).unwrap();
         my_rig.set_conf(TOK_PATHNAME, c"/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_IC-7200_0202084-if00-port0")?;
@@ -67,7 +90,7 @@ mod tests {
             retcode = rig_set_freq(my_rig, RIG_VFO_CURR, 21235175.0);
 
             if retcode != rig_errcode_e_RIG_OK as i32 {
-                panic!("um")
+                panic!("{}", retcode)
             }
 
             let mut freq = 0.0;
