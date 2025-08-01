@@ -3,7 +3,7 @@ pub mod lock;
 pub mod params;
 pub mod rig;
 pub mod token;
-pub mod vfo;
+pub mod types;
 
 pub use hamlib_sys as sys;
 
@@ -26,7 +26,7 @@ pub enum LogLevel {
 
 #[cfg(test)]
 mod tests {
-    use std::ptr;
+    use std::{ptr, thread, time::Duration};
 
     use hamlib_sys::{
         RIG_MODEL_IC7200, RIG_VFO_B, RIG_VFO_CURR, rig_cleanup, rig_debug_level_e_RIG_DEBUG_NONE,
@@ -35,7 +35,7 @@ mod tests {
     };
 
     use crate::{
-        error::RigResult, lock::{self, Hamlib}, params, rig::Rig, token::TOK_PATHNAME, vfo::VFO
+        error::RigResult, lock::{self, Hamlib}, params, rig::Rig, token::TOK_PATHNAME, types::VFO
     };
 
     #[test]
@@ -46,9 +46,9 @@ mod tests {
         lock::set_log_timestamps(lib, true);
         lock::load_rig_backends(lib)?;
         
-        params::init_params(lib);
+        //params::init_params(lib);
 
-        let mut my_rig = Rig::new(RIG_MODEL_IC7200).unwrap();
+        let mut my_rig = Rig::new(lib, RIG_MODEL_IC7200).unwrap();
         my_rig.set_conf(lib, TOK_PATHNAME, c"/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_IC-7200_0202084-if00-port0")?;
         my_rig.open(lib)?;
         my_rig.set_vfo(lib, VFO::RIG_VFO_B)?;
@@ -56,6 +56,13 @@ mod tests {
 
         let freq = my_rig.get_freq(lib, VFO::RIG_VFO_CURR)?;
         dbg!(freq);
+
+        my_rig.set_freq_callback(lib, |v, f| {
+            dbg!(v, f);
+        })?;
+        //let thr = std::thread::spawn(move || loop {});
+        thread::sleep(Duration::from_millis(5_000));
+        //thr.join().unwrap();
 
         Ok(())
     }
